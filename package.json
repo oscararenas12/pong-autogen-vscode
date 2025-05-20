@@ -1,0 +1,33 @@
+{
+  "name": "pong-autogen",
+  "displayName": "AutoGen Pong",
+  "description": "Two AutoGen agents play pong in a WebView.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:pongAutogen.startGame"
+  ],
+  "main": "./extension/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pongAutogen.startGame",
+        "title": "Start AutoGen Pong Game"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "echo No build step needed",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "playwright": "^1.52.0",
+    "vsce": "^2.15.0"
+  }
+}

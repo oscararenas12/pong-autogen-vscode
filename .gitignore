@@ -1,0 +1,13 @@
+# VS Code config
+.vscode/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Python virtual environment
+server/.pav-venv/
+
+# Python cache
+__pycache__/
+*.pyc
