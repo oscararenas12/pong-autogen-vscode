@@ -43,5 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
+    // ✅ Get button element
+    const startBtn = document.getElementById("startBtn");
+
+    // Hide button on click
+    startBtn.addEventListener("click", () => {
+        startBtn.style.display = "none";
+        logToVSCode("🟢 Start Game button clicked.");
+    });
+
     logToVSCode("✅ Left paddle rendered.");
 });
+

@@ -1,5 +1,6 @@
 # VS Code config
 .vscode/
+.vscode-test/
 
 # Node.js
 node_modules/

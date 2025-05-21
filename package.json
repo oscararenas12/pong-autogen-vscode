@@ -3,7 +3,7 @@
   "displayName": "AutoGen Pong",
   "description": "A VS Code extension where two AutoGen agents play Pong in a WebView.",
   "version": "0.0.1",
-  "publisher": "your-publisher-name",
+  "publisher": "oscar-arenas",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -24,11 +24,14 @@
   },
   "scripts": {
     "compile": "echo No build step needed",
-    "test": "playwright test",
-    "package": "vsce package"
+    "package": "vsce package",
+    "test:ui": "playwright test",
+    "test:ext": "node tests-mocha/runMocha.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
+    "@vscode/test-electron": "^2.5.2",
+    "mocha": "^11.4.0",
     "playwright": "^1.52.0",
     "vsce": "^2.15.0"
   }

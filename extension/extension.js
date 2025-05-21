@@ -20,8 +20,13 @@ function activate(context) {
         const htmlPath = path.join(mediaPath, 'index.html');
         let html = fs.readFileSync(htmlPath, 'utf8');
 
-        const mediaUri = panel.webview.asWebviewUri(vscode.Uri.file(mediaPath));
-        html = html.replace(/{{mediaBase}}/g, mediaUri.toString());
+        // Convert local paths in HTML (e.g., ./main.js) to webview-safe URIs
+        const fixUri = (relativePath) =>
+            panel.webview.asWebviewUri(vscode.Uri.file(path.join(mediaPath, relativePath))).toString();
+
+        html = html
+            .replace('./main.js', fixUri('main.js'))
+            .replace('./style.css', fixUri('style.css'));
 
         panel.webview.html = html;
     });
