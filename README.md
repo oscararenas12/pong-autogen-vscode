@@ -28,3 +28,4 @@ Rules to follow:
 -   After giving the snippet, pause and ask if the test passed or if I need help adjusting.
 -   When you provide a code snippet, please include the line number where it should be inserted—both the line above and the line below, so I know exactly where to place it.
 -   Wait for me to confirm or ask for the next step before continuing.
+- Also remember all the context of the files I give you

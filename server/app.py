@@ -12,6 +12,8 @@ def move_paddle():
     paddle = data.get("paddle")  # "left" or "right"
     ball_position = data.get("ball_position")
 
+    print("📥 AI prompt received:", ball_position)
+
     agent = left_paddle_agent if paddle == "left" else right_paddle_agent
     move = get_paddle_move(agent, ball_position)
 
@@ -19,3 +21,4 @@ def move_paddle():
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
+
