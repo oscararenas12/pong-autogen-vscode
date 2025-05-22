@@ -34,8 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const startBtn = document.getElementById("startBtn");
     const retryBtn = document.getElementById("retryBtn");
+    logToVSCode("🚀 DOMContentLoaded, Game Ready!");
 
     startBtn.addEventListener("click", () => {
+        logToVSCode("🟢 Start Game");
         startBtn.style.display = "none";
 
         // Reset scores every game start
@@ -44,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ball.moving = true;
         gameOver = false;
-        logToVSCode("🟢 Start Game");
     });
 
     retryBtn.addEventListener("click", () => {

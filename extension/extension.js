@@ -20,7 +20,6 @@ function activate(context) {
         const htmlPath = path.join(mediaPath, 'index.html');
         let html = fs.readFileSync(htmlPath, 'utf8');
 
-        // Convert local paths in HTML (e.g., ./main.js) to webview-safe URIs
         const fixUri = (relativePath) =>
             panel.webview.asWebviewUri(vscode.Uri.file(path.join(mediaPath, relativePath))).toString();
 
@@ -29,6 +28,19 @@ function activate(context) {
             .replace('./style.css', fixUri('style.css'));
 
         panel.webview.html = html;
+
+        // Add message listener
+        panel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.command) {
+                    case 'log':
+                        console.log('[Webview]:', message.text);
+                        break;
+                }
+            },
+            undefined,
+            context.subscriptions
+        );
     });
 
     context.subscriptions.push(disposable);
