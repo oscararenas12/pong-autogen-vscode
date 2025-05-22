@@ -6,9 +6,10 @@ import {
     leftPaddle,
     rightPaddle,
     paddleHeight,
-    gameOver
+    gameOver,
+    resetGameState
 } from './game.js';
-  
+
 import { setupAIListener } from './ai.js';
 
 let vscode;
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext("2d");
 
     const startBtn = document.getElementById("startBtn");
+    const retryBtn = document.getElementById("retryBtn");
 
     startBtn.addEventListener("click", () => {
         startBtn.style.display = "none";
@@ -45,6 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
         logToVSCode("🟢 Start Game");
     });
 
+    retryBtn.addEventListener("click", () => {
+        resetGameState();
+        initCanvas(canvas, ctx);
+
+        retryBtn.style.display = "none";
+        startBtn.style.display = "block";
+
+        logToVSCode("🔁 Retry clicked");
+    });
+
     setupAIListener(logToVSCode);
     initCanvas(canvas, ctx);
     startGameLoop(canvas, ctx);
@@ -56,3 +68,4 @@ window.scores = scores;
 window.leftPaddle = leftPaddle;
 window.rightPaddle = rightPaddle;
 window.gameOver = gameOver;
+window.retryBtn = document.getElementById("retryBtn");

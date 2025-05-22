@@ -101,3 +101,54 @@ test('Game ends after right player reaches 7 points', async ({ page }) => {
 
     expect(hasYellowPixels).toBe(true);
 });
+
+test('Retry button resets game and clears Game Over screen', async ({ page }) => {
+    const file = path.resolve(__dirname, '../../extension/media/index.html');
+    await page.goto('file://' + file);
+
+    const startBtn = page.locator('#startBtn');
+    await startBtn.click();
+
+    // Force right player to win
+    for (let i = 0; i < 7; i++) {
+        await page.evaluate(() => {
+            window.ball.x = -10;
+            window.ball.moving = true;
+        });
+        await page.waitForTimeout(150);
+    }
+
+    // Wait for "Game Over!" to be drawn
+    await page.waitForTimeout(500);
+
+    // Click the Retry button
+    const retryBtn = page.locator('#retryBtn');
+    await retryBtn.click();
+
+    // Wait a bit for canvas to update
+    await page.waitForTimeout(300);
+
+    // ✅ Assert Game Over text is gone
+    const hasYellowPixels = await page.evaluate(() => {
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+        for (let i = 0; i < imageData.length; i += 4) {
+            if (imageData[i] === 255 && imageData[i + 1] === 255 && imageData[i + 2] === 0) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    expect(hasYellowPixels).toBe(false);
+
+    // ✅ Assert scores reset
+    const [leftScore, rightScore] = await page.evaluate(() => [window.scores.left, window.scores.right]);
+    expect(leftScore).toBe(0);
+    expect(rightScore).toBe(0);
+
+    // ✅ Assert start button is shown again
+    await expect(startBtn).toBeVisible();
+});

@@ -115,6 +115,10 @@ function handleGameOver(canvas, ctx) {
     ctx.fillStyle = 'lightgreen';
     ctx.font = '30px Arial';
     ctx.fillText(`${winner} player wins!`, canvas.width / 2 - 100, canvas.height / 2 + 50);
+
+    if (typeof window !== 'undefined' && window.retryBtn) {
+        window.retryBtn.style.display = 'block';
+    }
 }
 
 function updateBallPosition() {
@@ -198,4 +202,20 @@ export function startGameLoop(canvas, ctx) {
         requestAnimationFrame(loop);
     }
     loop();
+}
+
+export function resetGameState() {
+    scores.left = 0;
+    scores.right = 0;
+
+    ball.x = 400;
+    ball.y = 300;
+    ball.dx = 3;
+    ball.dy = 2;
+    ball.moving = false;
+
+    leftPaddle.y = 150;
+    rightPaddle.y = 150;
+
+    gameOver = false;
 }
