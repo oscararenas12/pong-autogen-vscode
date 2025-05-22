@@ -1,23 +1,16 @@
 // playwright.config.js
 const { defineConfig } = require('@playwright/test');
-
 module.exports = defineConfig({
-    testDir: './tests-playwright',
-    timeout: 10000,
-    retries: 0,
-    use: {
-        headless: true,
-        viewport: { width: 800, height: 600 },
-        ignoreHTTPSErrors: true,
-        baseURL: 'http://localhost:5000', // Ready for future Flask backend
-    },
+    testDir: './tests/ui',
     projects: [
         {
-            name: 'chromium-webview',
+            name: 'chromium-local',
             use: {
-                browserName: 'chromium'
+                browserName: 'chromium',
+                launchOptions: {
+                    args: ['--allow-file-access-from-files']
+                }
             }
         }
-    ],
-    reporter: [['list']]
+    ]
 });

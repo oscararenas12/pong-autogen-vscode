@@ -25,7 +25,7 @@ function activate(context) {
             panel.webview.asWebviewUri(vscode.Uri.file(path.join(mediaPath, relativePath))).toString();
 
         html = html
-            .replace('./main.js', fixUri('main.js'))
+            .replace('./js/main.js', fixUri('js/main.js'))
             .replace('./style.css', fixUri('style.css'));
 
         panel.webview.html = html;

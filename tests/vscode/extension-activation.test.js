@@ -18,3 +18,17 @@ describe('Extension Activation', () => {
         );
     });
 });
+
+it('should launch the WebView when command is executed', async () => {
+    await vscode.commands.executeCommand('pongAutogen.startGame');
+
+    const visiblePanels = vscode.window.visibleTextEditors;
+    assert.ok(visiblePanels, 'Expected WebView to open (at least one editor visible)');
+});
+
+it('should have the correct metadata', async () => {
+    const ext = vscode.extensions.getExtension('oscar-arenas.pong-autogen');
+    assert.strictEqual(ext.packageJSON.name, 'pong-autogen');
+    assert.strictEqual(ext.packageJSON.activationEvents.includes('onCommand:pongAutogen.startGame'), true);
+});
+

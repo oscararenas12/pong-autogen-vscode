@@ -25,8 +25,8 @@
   "scripts": {
     "compile": "echo No build step needed",
     "package": "vsce package",
-    "test:ui": "playwright test",
-    "test:ext": "node tests-mocha/runMocha.js"
+    "test:ext": "node tests/extension-launch.js",
+    "test:ui": "playwright test --config=playwright.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
