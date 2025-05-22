@@ -1,12 +1,23 @@
-import { ball, startGameLoop, initCanvas } from './game.js';
+import {
+    ball,
+    startGameLoop,
+    initCanvas,
+    scores,
+    leftPaddle,
+    rightPaddle,
+    paddleHeight,
+    gameOver
+} from './game.js';
+  
 import { setupAIListener } from './ai.js';
 
-// VS Code API setup
 let vscode;
 try {
     vscode = acquireVsCodeApi();
 } catch (e) {
-    console.error('Error acquiring VS Code API:', e);
+    vscode = {
+        postMessage: (msg) => console.log('📄 Mock log:', msg)
+    };
 }
 
 function logToVSCode(msg) {
@@ -24,7 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startBtn.addEventListener("click", () => {
         startBtn.style.display = "none";
+
+        // Reset scores every game start
+        scores.left = 0;
+        scores.right = 0;
+
         ball.moving = true;
+        gameOver = false;
         logToVSCode("🟢 Start Game");
     });
 
@@ -32,3 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initCanvas(canvas, ctx);
     startGameLoop(canvas, ctx);
 });
+
+// Expose objects to global scope for playwright tests
+window.ball = ball;
+window.scores = scores;
+window.leftPaddle = leftPaddle;
+window.rightPaddle = rightPaddle;
+window.gameOver = gameOver;
