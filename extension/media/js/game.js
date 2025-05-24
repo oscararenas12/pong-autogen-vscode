@@ -4,15 +4,15 @@ export const paddleHeight = 80;
 const winningScore = 7;
 export let gameOver = false;
 
-export const leftPaddle = { x: 10, y: 150, speed: 5 };
-export const rightPaddle = { x: 770, y: 150, speed: 5 };
+export const leftPaddle = { x: 10, y: 150, speed: 25 };
+export const rightPaddle = { x: 770, y: 150, speed: 25 };
 
 export const ball = {
     x: 400,
     y: 300,
     radius: 10,
-    dx: 3,
-    dy: 2,
+    dx: 18,
+    dy: 27,
     moving: false
 };
 

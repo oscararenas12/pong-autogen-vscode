@@ -75,9 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
                     ball.dy *= -1;
                 }
-
+                
                 const now = Date.now();
-                if (window.getRightPaddleMove && now - lastFetchTime > 200) {
+                const yDistance = Math.abs(ball.y - (rightPaddle.y + paddleHeight / 2));
+                if (window.getRightPaddleMove && now - lastFetchTime > 200 && yDistance > 30) {
                     lastFetchTime = now;
                     cachedMove = await window.getRightPaddleMove(ball, rightPaddle.y);
                 }
