@@ -4,7 +4,7 @@ export function setupAIListener(logToVSCode) {
     async function getRightPaddleMove(ball, paddleY) {
         const input = {
             paddle: "right",
-            ball_position: `Ball Y: ${ball.y}, Paddle Y: ${paddleY}, Ball moving: ${ball.dy > 0 ? "down" : "up"}`
+            ball_position: `Ball Y: ${ball.y}, Paddle Y: ${rightPaddle.y}, Ball moving: ${ball.dy > 0 ? "down" : "up"}`
         };
 
         logToVSCode(`📤 Sending to AI: ${input.ball_position}`);

@@ -2,6 +2,7 @@
 
 import os
 import autogen
+from pydantic import BaseModel, Field, validator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,6 +33,25 @@ llm_config = {
     "temperature": 0.2
 }
 
+# Define Pydantic model for structured input
+class PaddleInput(BaseModel):
+    ball_y: int = Field(..., alias="Ball Y")
+    paddle_y: int = Field(..., alias="Paddle Y")
+    ball_moving: str = Field(..., alias="Ball moving")
+
+    @validator("ball_moving")
+    def validate_direction(cls, v):
+        if v not in {"up", "down"}:
+            raise ValueError("Direction must be 'up' or 'down'")
+        return v
+
+
+    def convert_direction(cls, v):
+        direction_map = {"down": 0, "up": 1}
+        if v not in direction_map:
+            raise ValueError("Direction must be 'up' or 'down'")
+        return direction_map[v]
+
 # Define agents
 left_paddle_agent = autogen.AssistantAgent(
     name="LeftPaddleAgent",
@@ -41,40 +61,63 @@ left_paddle_agent = autogen.AssistantAgent(
 
 right_paddle_agent = autogen.AssistantAgent(
     name="RightPaddleAgent",
-    system_message=(
-    "You control the RIGHT paddle in Pong.\n"
-    "You will receive:\n"
-    "- Ball Y position\n"
-    "- Paddle Y position\n"
-    "- Ball movement direction ('up' or 'down')\n\n"
-    "Respond with ONE WORD ONLY: 'up', 'down', or 'stay'.\n"
-    "NO punctuation. NO explanation. Just the move.\n\n"
-    "Examples:\n"
-    "- Input: Ball Y: 400, Paddle Y: 300, Ball moving: down → Output: down\n"
-    "- Input: Ball Y: 250, Paddle Y: 250, Ball moving: up → Output: stay\n"
-    "- Input: Ball Y: 100, Paddle Y: 200, Ball moving: up → Output: up"
-),
+        system_message=(
+            "You control the RIGHT paddle in Pong.\n"
+            "You will receive:\n"
+            "- Ball Y position (0 to 600)\n"
+            "- Paddle Y position (0 to 600, paddle height = 80)\n"
+            "- Ball movement direction: 'up' or 'down'\n\n"
+            "Your job is to keep the paddle aligned with the ball.\n"
+            "Return:\n"
+            "- 0 to move the paddle DOWN\n"
+            "- 1 to move the paddle UP\n\n"
+            "Rules:\n"
+            "- If Paddle Y is 0, always return 0 (you cannot go higher)\n"
+            "- If Paddle Y is 520 or greater, always return 1 (you cannot go lower)\n"
+            "- Otherwise, try to center the paddle vertically on the ball\n\n"
+            "Examples:\n"
+            "- Ball Y: 570, Paddle Y: 495, Ball moving: down → Output: 0\n"
+            "- Ball Y: 200, Paddle Y: 300, Ball moving: up → Output: 1\n"
+            "- Ball Y: 150, Paddle Y: 150, Ball moving: up → Output: 1\n"
+            "- Ball Y: 350, Paddle Y: 370, Ball moving: down → Output: 0"
+        ),
 
     llm_config=llm_config
 )
 
 # Paddle decision function
 def get_paddle_move(agent, ball_position_description):
+    # Parse input
+    try:
+        fields = [f.strip() for f in ball_position_description.split(",")]
+        input_dict = dict(f.split(": ") for f in fields)
+        structured = PaddleInput.parse_obj(input_dict)
+        print("✅ Parsed input:", structured)
+    except Exception as e:
+        print("❌ Failed to parse input:", e)
+        return "1"  # default safe fallback
+
+    # AI raw suggestion
     result = agent.generate_oai_reply(
         messages=[{"role": "user", "content": ball_position_description}]
     )
     print("🧠 Raw LLM output:", result)
 
     if isinstance(result, tuple):
-        _, response = result  # ✅ Correct: take the second item, the actual reply
+        _, response = result
     else:
         response = result
 
-    cleaned = str(response).strip().lower()
+    cleaned = str(response).strip()
 
-    # Only allow expected values
-    if cleaned not in ["up", "down", "stay"]:
-        return "stay"  # Default fallback
+    # 🚧 Override logic if paddle is clamped
+    if structured.paddle_y <= 0:
+        print("⛔ At top: forcing move = 0")
+        return "0"
+    elif structured.paddle_y >= 520:
+        print("⛔ At bottom: forcing move = 1")
+        return "1"
 
-    return cleaned
+    return cleaned if cleaned in ["0", "1"] else "1"
+
 
