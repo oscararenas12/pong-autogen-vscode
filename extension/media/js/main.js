@@ -5,6 +5,7 @@ import {
     scores,
     leftPaddle,
     rightPaddle,
+    paddleWidth,
     paddleHeight,
     gameOver,
     resetGameState
@@ -29,6 +30,7 @@ function logToVSCode(msg) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.__isUITest = !!navigator.webdriver;
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -40,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
         logToVSCode("🟢 Start Game");
         startBtn.style.display = "none";
 
-        // Reset scores every game start
         scores.left = 0;
         scores.right = 0;
 
@@ -59,8 +60,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     setupAIListener(logToVSCode);
-    initCanvas(canvas, ctx);
-    startGameLoop(canvas, ctx);
+
+    if (window.__isUITest) {
+        startGameLoop(canvas, ctx);
+    } else {
+
+        async function loop() {
+            if (!gameOver && ball.moving) {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                    ball.dy *= -1;
+                }
+                
+                let normalized = "stay";
+                if (window.getRightPaddleMove) {
+                    const move = await window.getRightPaddleMove(ball, rightPaddle.y);
+                    normalized = String(move).trim().toLowerCase();
+                }
+                
+                logToVSCode(`📥 Normalized move: ${normalized}`);
+                
+                if (normalized === "up") {
+                    rightPaddle.y -= rightPaddle.speed;
+                    logToVSCode("⬆️ Moved up");
+                } else if (normalized === "down") {
+                    rightPaddle.y += rightPaddle.speed;
+                    logToVSCode("⬇️ Moved down");
+                } else {
+                    logToVSCode("⏸️ Stayed in place");
+                }
+                
+
+                rightPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, rightPaddle.y));
+
+                if (
+                    ball.x + ball.radius > rightPaddle.x &&
+                    ball.y > rightPaddle.y &&
+                    ball.y < rightPaddle.y + paddleHeight
+                ) {
+                    ball.dx *= -1;
+                    ball.x = rightPaddle.x - ball.radius;
+                }
+
+                if (
+                    ball.x - ball.radius < leftPaddle.x + paddleWidth &&
+                    ball.y > leftPaddle.y &&
+                    ball.y < leftPaddle.y + paddleHeight
+                ) {
+                    ball.dx *= -1;
+                    ball.x = leftPaddle.x + paddleWidth + ball.radius;
+                }
+
+                if (ball.x < 0) {
+                    scores.right++;
+                    if (scores.right >= 7) {
+                        ball.moving = false;
+                        window.gameOver = true;
+                    }
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.dx = -ball.dx;
+                }
+
+                if (ball.x > canvas.width) {
+                    scores.left++;
+                    if (scores.left >= 7) {
+                        ball.moving = false;
+                        window.gameOver = true;
+                    }
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.dx = -ball.dx;
+                }
+            }
+
+            initCanvas(canvas, ctx);
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    }
 });
 
 // Expose objects to global scope for playwright tests

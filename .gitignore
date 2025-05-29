@@ -12,3 +12,5 @@ server/.pav-venv/
 # Python cache
 __pycache__/
 *.pyc
+
+.env

@@ -5,7 +5,7 @@ const winningScore = 7;
 export let gameOver = false;
 
 export const leftPaddle = { x: 10, y: 150, speed: 5 };
-export const rightPaddle = { x: 770, y: 150, speed: 5 };
+export const rightPaddle = { x: 770, y: 150, speed: 8 };
 
 export const ball = {
     x: 400,
