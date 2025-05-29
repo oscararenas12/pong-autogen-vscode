@@ -64,8 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.__isUITest) {
         startGameLoop(canvas, ctx);
     } else {
-        let lastFetchTime = 0;
-        let cachedMove = "stay";
 
         async function loop() {
             if (!gameOver && ball.moving) {
@@ -76,14 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     ball.dy *= -1;
                 }
                 
-                const now = Date.now();
-                const yDistance = Math.abs(ball.y - (rightPaddle.y + paddleHeight / 2));
-                if (window.getRightPaddleMove && now - lastFetchTime > 200 && yDistance > 30) {
-                    lastFetchTime = now;
-                    cachedMove = await window.getRightPaddleMove(ball, rightPaddle.y);
+                let normalized = "stay";
+                if (window.getRightPaddleMove) {
+                    const move = await window.getRightPaddleMove(ball, rightPaddle.y);
+                    normalized = String(move).trim().toLowerCase();
                 }
-
-                const normalized = String(cachedMove).trim().toLowerCase();
+                
                 logToVSCode(`📥 Normalized move: ${normalized}`);
                 const y = rightPaddle.y;
 
@@ -93,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (normalized === "0" && y < canvas.height - paddleHeight) {
                     rightPaddle.y += rightPaddle.speed;
                     logToVSCode("⬇️ Moved down");
+                } else if (normalized === "2") {
+                    logToVSCode("⏸️ Stayed in place");
                 } else {
                     logToVSCode("⛔ Clamp blocked move");
                 }

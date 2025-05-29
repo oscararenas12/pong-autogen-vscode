@@ -1,6 +1,7 @@
 # autogen_pong.py
 
 import os
+import re
 import autogen
 from pydantic import BaseModel, Field, validator
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ if os.getenv("OPENAI_API_TYPE") == "azure":
     }]
 else:
     config_list = [{
-        "model": os.getenv("OPENAI_DEPLOYMENT_ID", "gpt-3.5-turbo"),
+        "model": os.getenv("OPENAI_DEPLOYMENT_ID", "gpt-4o"),
         "api_key": os.getenv("OPENAI_API_KEY"),
     }]
 
@@ -37,7 +38,11 @@ llm_config = {
 class PaddleInput(BaseModel):
     ball_y: int = Field(..., alias="Ball Y")
     paddle_y: int = Field(..., alias="Paddle Y")
+    paddle_center: int = Field(..., alias="Paddle Center")
     ball_moving: str = Field(..., alias="Ball moving")
+    distance: int = Field(..., alias="Distance from ball")
+    near_top: bool = Field(..., alias="Near top boundary")
+    near_bottom: bool = Field(..., alias="Near bottom boundary")
 
     @validator("ball_moving")
     def validate_direction(cls, v):
@@ -45,12 +50,6 @@ class PaddleInput(BaseModel):
             raise ValueError("Direction must be 'up' or 'down'")
         return v
 
-
-    def convert_direction(cls, v):
-        direction_map = {"down": 0, "up": 1}
-        if v not in direction_map:
-            raise ValueError("Direction must be 'up' or 'down'")
-        return direction_map[v]
 
 # Define agents
 left_paddle_agent = autogen.AssistantAgent(
@@ -61,27 +60,25 @@ left_paddle_agent = autogen.AssistantAgent(
 
 right_paddle_agent = autogen.AssistantAgent(
     name="RightPaddleAgent",
-        system_message=(
+        system_message = (
             "You control the RIGHT paddle in Pong.\n"
             "You will receive:\n"
             "- Ball Y position (0 to 600)\n"
-            "- Paddle Y position (0 to 600, paddle height = 80)\n"
-            "- Ball movement direction: 'up' or 'down'\n\n"
-            "Your job is to keep the paddle aligned with the ball.\n"
-            "Return:\n"
+            "- Paddle Y position (0 to 600)\n"
+            "- Paddle center (Y + 40)\n"
+            "- Ball movement direction: 'up' or 'down'\n"
+            "- Distance from ball (abs difference between ball Y and paddle center)\n"
+            "- Near top boundary: true or false\n"
+            "- Near bottom boundary: true or false\n\n"
+            "Your job is to align the paddle CENTER with the ball Y position.\n"
+            "Only move if the ball is more than ±10 pixels away from the paddle center.\n"
+            "If you're near the top or bottom, avoid illegal moves.\n\n"
+            "Return ONLY one of the following:\n"
             "- 0 to move the paddle DOWN\n"
-            "- 1 to move the paddle UP\n\n"
-            "Rules:\n"
-            "- If Paddle Y is 0, always return 0 (you cannot go higher)\n"
-            "- If Paddle Y is 520 or greater, always return 1 (you cannot go lower)\n"
-            "- Otherwise, try to center the paddle vertically on the ball\n\n"
-            "Examples:\n"
-            "- Ball Y: 570, Paddle Y: 495, Ball moving: down → Output: 0\n"
-            "- Ball Y: 200, Paddle Y: 300, Ball moving: up → Output: 1\n"
-            "- Ball Y: 150, Paddle Y: 150, Ball moving: up → Output: 1\n"
-            "- Ball Y: 350, Paddle Y: 370, Ball moving: down → Output: 0"
+            "- 1 to move the paddle UP\n"
+            "- 2 to STAY\n\n"
+            "Respond with a single number only: 0, 1, or 2. Do not include any explanations, text, or punctuation."
         ),
-
     llm_config=llm_config
 )
 
@@ -110,14 +107,22 @@ def get_paddle_move(agent, ball_position_description):
 
     cleaned = str(response).strip()
 
-    # 🚧 Override logic if paddle is clamped
-    if structured.paddle_y <= 0:
-        print("⛔ At top: forcing move = 0")
-        return "0"
-    elif structured.paddle_y >= 520:
-        print("⛔ At bottom: forcing move = 1")
-        return "1"
+    # Extract first digit from response
+    match = re.search(r"\b([012])\b", cleaned)
+    if match:
+        move = match.group(1)
+    else:
+        print("❌ No valid move found, defaulting to 1")
+        move = "1"
 
-    return cleaned if cleaned in ["0", "1"] else "1"
+    # Clamp override (only if not '2')
+    if move != "2":
+        if structured.paddle_y <= 0 and move == "1":
+            return "2"
+        elif structured.paddle_y >= 520 and move == "0":
+            return "2"
+
+    print(f"📊 Debug: Ball Y = {structured.ball_y}, Paddle Y = {structured.paddle_y}, Paddle center = {structured.paddle_y + 40}")
 
 
+    return move
