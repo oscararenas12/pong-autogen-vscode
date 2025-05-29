@@ -81,19 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 logToVSCode(`📥 Normalized move: ${normalized}`);
-                const y = rightPaddle.y;
-
-                if (normalized === "1" && y > 0) {
+                
+                if (normalized === "up") {
                     rightPaddle.y -= rightPaddle.speed;
                     logToVSCode("⬆️ Moved up");
-                } else if (normalized === "0" && y < canvas.height - paddleHeight) {
+                } else if (normalized === "down") {
                     rightPaddle.y += rightPaddle.speed;
                     logToVSCode("⬇️ Moved down");
-                } else if (normalized === "2") {
-                    logToVSCode("⏸️ Stayed in place");
                 } else {
-                    logToVSCode("⛔ Clamp blocked move");
+                    logToVSCode("⏸️ Stayed in place");
                 }
+                
 
                 rightPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, rightPaddle.y));
 
