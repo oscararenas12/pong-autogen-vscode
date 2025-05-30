@@ -74,27 +74,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     ball.dy *= -1;
                 }
                 
-                let normalized = "stay";
+                let rightMove = "stay";
                 if (window.getRightPaddleMove) {
                     const move = await window.getRightPaddleMove(ball, rightPaddle.y);
-                    normalized = String(move).trim().toLowerCase();
+                    rightMove = String(move).trim().toLowerCase();
                 }
-                
-                logToVSCode(`📥 Normalized move: ${normalized}`);
-                
-                if (normalized === "up") {
-                    rightPaddle.y -= rightPaddle.speed;
-                    logToVSCode("⬆️ Moved up");
-                } else if (normalized === "down") {
-                    rightPaddle.y += rightPaddle.speed;
-                    logToVSCode("⬇️ Moved down");
-                } else {
-                    logToVSCode("⏸️ Stayed in place");
-                }
-                
 
+                logToVSCode(`📥 Right paddle normalized move: ${rightMove}`);
+
+                if (rightMove === "up") rightPaddle.y -= rightPaddle.speed;
+                else if (rightMove === "down") rightPaddle.y += rightPaddle.speed;
+
+                // New left paddle AI logic (similar pattern)
+                let leftMove = "stay";
+                if (window.getLeftPaddleMove) {
+                    const move = await window.getLeftPaddleMove(ball, leftPaddle.y);
+                    leftMove = String(move).trim().toLowerCase();
+                }
+
+                logToVSCode(`📥 Left paddle normalized move: ${leftMove}`);
+
+                if (leftMove === "up") leftPaddle.y -= leftPaddle.speed;
+                else if (leftMove === "down") leftPaddle.y += leftPaddle.speed;
+
+                // Ensure paddles stay within bounds
                 rightPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, rightPaddle.y));
-
+                leftPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, leftPaddle.y));
                 if (
                     ball.x + ball.radius > rightPaddle.x &&
                     ball.y > rightPaddle.y &&
