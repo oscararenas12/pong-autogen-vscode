@@ -1,13 +1,13 @@
 import { leftPaddle, rightPaddle, paddleHeight } from './game.js';
 
 export function setupAIListener(logToVSCode) {
-    async function getRightPaddleMove(ball, paddleY) {
+    async function getPaddleMove(paddleSide, ball, paddleY) {
         const input = {
-            paddle: "right",
+            paddle: paddleSide,
             ball_position: `Ball Y: ${ball.y}, Paddle Y: ${paddleY}, Ball moving: ${ball.dy > 0 ? "down" : "up"}, Ball dy: ${Math.abs(ball.dy)}`
         };
 
-        logToVSCode(`📤 Sending to AI: ${input.ball_position}`);
+        logToVSCode(`📤 Sending to ${paddleSide} AI: ${input.ball_position}`);
 
         try {
             const res = await fetch("http://localhost:5000/move_paddle", {
@@ -17,23 +17,24 @@ export function setupAIListener(logToVSCode) {
             });
 
             const raw = await res.text();
-            logToVSCode(`🧾 Raw response: ${raw}`);
+            logToVSCode(`🧾 ${paddleSide} AI raw response: ${raw}`);
 
             let data;
             try {
                 data = JSON.parse(raw);
             } catch (err) {
-                logToVSCode(`❌ JSON parse error: ${err.message}`);
+                logToVSCode(`❌ JSON parse error (${paddleSide}): ${err.message}`);
                 return "stay";
             }
 
-            logToVSCode(`🤖 AI move: ${data.move}`);
+            logToVSCode(`🤖 ${paddleSide} AI move: ${data.move}`);
             return data.move;
         } catch (err) {
-            logToVSCode(`❌ AI fetch failed: ${err.message}`);
+            logToVSCode(`❌ ${paddleSide} AI fetch failed: ${err.message}`);
             return "stay";
         }
     }
 
-    window.getRightPaddleMove = getRightPaddleMove;
+    window.getRightPaddleMove = (ball, paddleY) => getPaddleMove("right", ball, paddleY);
+    window.getLeftPaddleMove = (ball, paddleY) => getPaddleMove("left", ball, paddleY);
 }

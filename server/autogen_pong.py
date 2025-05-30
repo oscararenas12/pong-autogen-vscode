@@ -50,7 +50,19 @@ class GameState(BaseModel):
 # Define agents
 left_paddle_agent = autogen.AssistantAgent(
     name="LeftPaddleAgent",
-    system_message="You control the LEFT paddle in a game of Pong. The only valid responses are: 'up', 'down', or 'stay'. Respond with ONE of these words only.",
+    system_message=(
+        "You control the left paddle in Pong.\n"
+        "You will receive:\n"
+        "- Ball Y position\n"
+        "- Paddle Y position\n"
+        "- Ball movement direction ('up' or 'down')\n\n"
+        "Respond with ONE WORD ONLY: 'up', 'down', or 'stay'.\n"
+        "NO punctuation. NO explanation. Just the move.\n\n"
+        "Examples:\n"
+        "- Input: Ball Y: 400, Paddle Y: 300, Ball moving: down → Output: down\n"
+        "- Input: Ball Y: 250, Paddle Y: 250, Ball moving: up → Output: stay\n"
+        "- Input: Ball Y: 100, Paddle Y: 200, Ball moving: up → Output: up"
+    ),
     llm_config=llm_config
 )
 
